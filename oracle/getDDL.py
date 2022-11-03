@@ -14,7 +14,10 @@ except Exception as e:
     print(e)
     exit()
 ddl=sop.getDDL(argv[4],argv[5])
-filesql=open(argv[5]+'.sql','w',encoding='utf-8')
-filesql.write(ddl)
-filesql.close()
+if 'ORA' not in ddl:
+    filesql=open(argv[5]+'.sql','w',encoding='utf-8')
+    filesql.write(ddl)
+    filesql.close()
+else:
+    print(ddl)
 sop.release()

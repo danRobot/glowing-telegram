@@ -1,3 +1,4 @@
+from pprint import pprint
 from database import Database
 from multiprocessing import Pool
 from sys import argv
@@ -76,4 +77,4 @@ sites=open(argv[1],'r').readlines()
 #p.join()
 with Pool(5) as p:
     r=p.map(runSQL,sites)
-    print(r)
+    pprint(r)

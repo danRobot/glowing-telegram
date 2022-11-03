@@ -6,6 +6,9 @@ import datetime as dt
 from sys import platform
 import os
 from os.path import join
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
 
 class Database:
     def __init__(self,
@@ -23,10 +26,9 @@ class Database:
         self.db=None
         self.cur=None
         self.initcon=initcon
-        self.try_connect();
-        self.curr_dir=os.environ['PYTHONPATH']
-        self.root_dir=os.path.split(self.curr_dir)[0]
-        self.sqls_dir=join(self.root_dir,'sql_querys')
+        result_conection=self.try_connect()
+        print("Conección {}".format(result_conection))
+        self.sqls_dir=join(BASE_DIR,'sql_querys')
         self.put_alias=lambda x:x+'.' if x!=None else ''
         pass
     def try_connect(self,username:str=None,
@@ -58,7 +60,10 @@ class Database:
             self.cur=self.db.cursor()
             result='OK'
         except Exception as e:
-            result=e.args[0].message
+            try:
+                result=e.args[0].message
+            except:
+                result=e
         return result
     def _get_sqlquery(self,query_name:str):
         path=join(self.sqls_dir,query_name+'.sql')
@@ -74,7 +79,10 @@ class Database:
             else:
                 result=self.cur.execute(sql,values)
         except Exception as e:
-            result=(sql,e.args[0].message)
+            try:
+                result=(sql,e.args[0].message)
+            except:
+                result=(sql,e)
         return result
     def _execcutemany(self,sql,values):
         try:
@@ -88,13 +96,19 @@ class Database:
             else:
                 result=error_log
         except Exception as e:
-            result=(sql,e.args[0].message)
+            try:
+                result=(sql,e.args[0].message)
+            except:
+                result=(sql,e)
         return result
     def _callfn(self,fn,typ,param):
         try:
             result=self.cur.callfunc(fn,typ,param)
         except Exception as e:
-            result=e.args[0].message
+            try:
+                result=e.args[0].message
+            except:
+                result=e
         return result
     def release(self):
         if self.cur is not None:
@@ -173,12 +187,13 @@ class Database:
                 ['OWNER',self.username]]
         return self.common_sql('get_tables_by_column_name',filtro)
     def getDDL(self,entity:str,name:str):
-        value = self._callfn('dbms_metadata.get_ddl',db.DB_TYPE_CLOB,
+        result = self._callfn('dbms_metadata.get_ddl',db.DB_TYPE_CLOB,
                             [entity.upper(),name.upper()])
-        if type(value)==(''):
-            return value
-        else:
-            return value.read()
+        try:
+            value=result.read()
+        except:
+            value=result
+        return value
     def search_table(self, regex):
         regex = regex.upper().replace('*','%')
         sql_chk = "select user_tables.table_name from user_tables where upper(TABLE_NAME) like '" + regex + "'"
