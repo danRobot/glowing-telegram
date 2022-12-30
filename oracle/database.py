@@ -1,5 +1,4 @@
 from typing import Any, Union
-from matplotlib.pyplot import table
 import oracledb as db
 import pandas as pd
 import datetime as dt
